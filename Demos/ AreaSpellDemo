@@ -1,0 +1,62 @@
+/**
+* Example of dealing damage in an area using VJass
+* Note that this uses a vanilla unit group as opposed
+* to the more commonly used FoG loop.
+*/
+scope VJassAreaSpell initializer onInit
+
+    globals
+        //Need to preserve caster as a global to use in the enumerator/filter
+        unit caster
+    endglobals
+
+    /**
+    * Filter function - makes sure we only select enemies to damage
+    */
+    function onFilter takes nothing returns boolean
+        return IsUnitEnemy(GetFilterUnit(),GetOwningPlayer(caster))
+    endfunction
+    
+    /**
+    * Enumerator - deals damage to all units in the group.
+    */
+    function onEnum takes nothing returns nothing
+        call UnitDamageTarget(caster,GetEnumUnit(),150.,true,false,ATTACK_TYPE_CHAOS,DAMAGE_TYPE_ENHANCED,WEAPON_TYPE_WHOKNOWS)
+    endfunction
+    
+    /**
+    * Casting function.
+    * Creates the effect and uses a unit group to deal damage
+    */
+    function onCast takes nothing returns nothing
+        local unit source = GetTriggerUnit()
+        local group g = CreateGroup()
+        set caster = source
+        call DestroyEffect(AddSpecialEffect("Abilities\\Spells\\Orc\\WarStomp\\WarStompCaster.mdl",GetUnitX(source),GetUnitY(source)))
+        call GroupEnumUnitsInRange(g,GetUnitX(source),GetUnitY(source),200.,Filter(function onFilter))
+        call ForGroup(g,function onEnum)
+        call DestroyGroup(g)
+        set g = null
+        set source = null
+    endfunction
+    
+    /**
+    * Verifies that the casted ability is our needed ability
+    */
+    function onCheck takes nothing returns boolean
+        return(GetSpellAbilityId() == 'A001')
+    endfunction
+    
+    /**
+    * Initiator
+    * Sets up the trigger
+    */
+    function onInit takes nothing returns nothing
+        local trigger t = CreateTrigger()
+        call TriggerRegisterAnyUnitEventBJ(t,EVENT_PLAYER_UNIT_SPELL_EFFECT)
+        call TriggerAddCondition(t,Condition(function onCheck))
+        call TriggerAddAction(t,function onCast)
+        set t = null
+    endfunction
+    
+endscope
