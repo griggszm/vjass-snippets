@@ -1,3 +1,0 @@
-struct Ability
-
-endstruct

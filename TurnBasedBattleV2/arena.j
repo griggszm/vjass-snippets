@@ -5,11 +5,14 @@
 *   modify and retrieve those units
 *   Implemented methods:
 *
-*   public static method create takes real x0, real y0, real size0 returns thistype
+*   public static method create takes real x, real y, real size returns thistype
 *   public method moveToArenaAllies takes group units returns nothing
 *   public method moveToArenaEnemies takes group units returns nothing
 *   public method listUnitsByPriority takes nothing returns nothing
 *   public method getNextActionUnit takes nothing returns unit 
+*   public method areAlliesDead takes nothing returns boolean
+*   public method areEnemiesDead takes nothing returns boolean
+*   public method isBattleOver takes nothing returns boolean
 */
 struct Arena
 
@@ -43,6 +46,8 @@ struct Arena
     
     private group alliesGroup
     private group enemiesGroup
+    
+    private integer turnCount = 1
     
     //1 indexed array of units sorted by priority
     private unit array arenaUnitsSorted[30]
@@ -121,7 +126,9 @@ struct Arena
             set deltaInitial = size * 0.40
         endif
         
-        set delta = countUnits * 0.25
+        set delta = size * countUnits * 0.25
+        
+        call DebugMsg("Adjusting units with count " + I2S(countUnits) + ", delta " + R2S(delta) + ", and delta initial " + R2S(deltaInitial))
         
         //Copy group since we're going to destroy it
         call GroupAddGroup(units,g)
@@ -144,6 +151,7 @@ struct Arena
     public method moveToArenaAllies takes group units returns nothing
         call GroupAddGroup(units,alliesGroup)
         call moveToArenaInternal(units,true)
+        call DebugMsg("Allies added")
     endmethod
     
     /**
@@ -154,6 +162,7 @@ struct Arena
     public method moveToArenaEnemies takes group units returns nothing
         call GroupAddGroup(units,enemiesGroup)
         call moveToArenaInternal(units,false)
+        call DebugMsg("Enemies added")
     endmethod
     
     /**
@@ -199,7 +208,6 @@ struct Arena
     
     /**
     *   Lists units by priority
-    *
     */
     public method listUnitsByPriority takes nothing returns nothing
         local group g = CreateGroup()
@@ -212,6 +220,7 @@ struct Arena
             set top = getTopPriorityFromList(g)
             call GroupRemoveUnit(g,top)
             set arenaUnitsSorted[count] = top
+            call DebugMsg("Priority #" + I2S(count) + ": " + GetUnitName(top))
             set count = count + 1
             set maxIndex = maxIndex + 1
         endloop
@@ -225,11 +234,20 @@ struct Arena
     */
     public method getNextActionUnit takes nothing returns unit 
         local unit returnUnit = arenaUnitsSorted[currentUnit]
+        call DebugMsg("Current unit: " + GetUnitName(returnUnit) + " at index " + I2S(currentUnit))
         set currentUnit = currentUnit + 1
         if(currentUnit > maxIndex)then
             set currentUnit = 1
+            set turnCount = turnCount + 1
         endif
         return returnUnit
+    endmethod
+    
+    /**
+    *   Gets how many turns have elapsed, starting at 1
+    */
+    public method getTurnCount takes nothing returns integer
+        return turnCount
     endmethod
     
     /**
@@ -245,7 +263,6 @@ struct Arena
             exitwhen fog == null
             if(IsUnitAliveBJ(fog))then
                 set dead = false
-                
             endif
             call GroupRemoveUnit(g,fog)
         endloop
@@ -264,5 +281,9 @@ struct Arena
     */
     public method areEnemiesDead takes nothing returns boolean
         return(areUnitsDead(enemiesGroup))
+    endmethod
+    
+    public method isBattleOver takes nothing returns boolean
+        return areAlliesDead() or areEnemiesDead()
     endmethod
 endstruct
