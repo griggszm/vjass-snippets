@@ -50,7 +50,7 @@ struct BigFloat
       *  Defined as empty if it is 0 * 10^0
       */
       public method isEmpty takes nothing returns boolean
-        return (this.getNum() <= 2.001 and this.getExp()==0)
+        return (this.getNum() <= 1 and this.getExp()==0)
       endmethod
 
       /**
