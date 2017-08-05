@@ -1,5 +1,6 @@
 This is a simple, efficient system to make maze patrollers with up to 10 waypoints.
-Requires TimerUtils
+Requires TimerUtils.
+
 Some example consumer code:
 
 ```
