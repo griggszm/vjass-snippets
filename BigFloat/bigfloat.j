@@ -7,7 +7,6 @@
 *  numbers possible to work with.
 *  Does not handle negative numbers. Behavior with negatives is undefined
 *  @version 1.0
-*  @author EdgeOfChaos
 */
 struct BigFloat
 
